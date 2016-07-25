@@ -84,6 +84,20 @@ stage_estimate () {
   fi
 }
 
+stage_morpho_register () {
+  info "Computing Subject to Model Registrations"
+  for subject in ${subjects}
+  do
+    subjectname=$(basename ${subject})
+    modelname=$(basename $models)
+    if [[ ! -s output/transforms/modelspace/${subjectname}-${modelname}0_GenericAffine.xfm ]]
+    then
+      debug $morphoregcommand ${subject} ${models} output/transforms/modelspace
+      echo $morphoregcommand ${subject} ${models} output/transforms/modelspace
+    fi
+  done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=8 qbatch ${dryrun} --jobname ${datetime}-mb_register_morpho -
+}
+
 stage_register_atlas_template () {
   #Atlas to template registration
   info "Computing Atlas to Template Registrations"
@@ -98,7 +112,7 @@ stage_register_atlas_template () {
         debug $regcommand ${atlas} ${template} output/transforms/atlas-template/${templatename}
         echo $regcommand ${atlas} ${template} output/transforms/atlas-template/${templatename}
       fi
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=8 qbatch ${dryrun} --jobname ${datetime}-mb_register_atlas_template-${templatename} ${qbatch_atlas_template_opts} -
+    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=8 qbatch ${dryrun} --depend "${datetime}-mb_register_morpho*" --jobname ${datetime}-mb_register_atlas_template-${templatename} ${qbatch_atlas_template_opts} -
   done
 }
 
@@ -170,7 +184,7 @@ stage_register_template_subject () {
         debug $regcommand ${template} ${subject} output/transforms/template-subject/${subjectname}
         echo $regcommand ${template} ${subject} output/transforms/template-subject/${subjectname}
       fi
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4 qbatch ${dryrun} --jobname ${datetime}-mb_register_template_subject-${subjectname} ${qbatch_template_subject_opts} -
+    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4 qbatch ${dryrun} --depend "${datetime}-mb_register_morpho*" --jobname ${datetime}-mb_register_template_subject-${subjectname} ${qbatch_template_subject_opts} -
   done
 }
 
