@@ -105,6 +105,7 @@ fi
 #Alternative registration commands can be specified
 #Must accept $movingfile $fixedfile $outputprefix
 regcommand=${arg_r}
+morphoregcommand="mb_register_morpho.sh"
 
 #Create directories
 debug "Creating output directories"
@@ -155,10 +156,13 @@ fi
 for stage in $commandlist
 do
   case ${stage} in
-    template|subject|multiatlas|run)
+    template|subject|multiatlas|morpho|run)
       stage_estimate
       ;;&
-    template|multiatlas|run)
+    morpho-reg|morpho)
+      stage_morpho_register
+      ;;&
+    template|multiatlas|morpho|run)
       stage_register_atlas_template
       ;;&
     multiatlas|multiatlas-resample)
@@ -168,13 +172,13 @@ do
       stage_multiatlas_vote
       exit 0
       ;;
-    subject|run)
+    subject|morpho|run)
       stage_register_template_subject
       ;;&
-    resample|run)
+    resample|morpho|run)
       stage_resample
       ;;&
-    vote|run)
+    vote|morpho|run)
       stage_vote
       exit 0
       ;;
@@ -182,7 +186,7 @@ do
       stage_cleanup
       exit 0
       ;;
-    template|multiatlas|multiatlas-resample|multiatlas-vote|subject|resample|vote|cleanup|run)
+    template|multiatlas|multiatlas-resample|multiatlas-vote|subject|resample|vote|cleanup|morpho|morpho-reg|run)
       #Catch the fall-through of case matching before erroring
       ;;
     *)
